@@ -1,69 +1,50 @@
 package com.messenger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.messenger.chat.Chat;
+import com.messenger.chat.handlers.ConsoleClientHandler;
+import com.messenger.chat.services.ChatService;
 import com.messenger.entities.ActionType;
 import com.messenger.entities.Message;
 import com.messenger.entities.Sender;
 
-import java.io.*;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.util.Scanner;
-import java.util.UUID;
 
-public class Client {
+public class Client
+{
+  public static void main( String[] ar )
+  {
 
-    private static final int SERVER_PORT = 6666;
-    private static final String ADDRESS = "127.0.0.1";
+    Client client = new Client();
+    client.run();
+  }
 
-    ObjectMapper objectMapper = new ObjectMapper();
+  private void run()
+  {
+    try ( Scanner keyboard = new Scanner( System.in ) )
+    {
+      Sender user = ChatService.createUser();
+      Chat chat = ChatService.startChat( user, new ConsoleClientHandler() );
 
-    public static void main(String[] ar) {
-
-        Client client = new Client();
-        client.run();
-    }
-
-    private void run() {
-        try(Scanner keyboard = new Scanner(System.in)) {
-            InetAddress ipAddress = InetAddress.getByName(ADDRESS);
-
-            try (Socket socket = new Socket(ipAddress, SERVER_PORT);
-                 DataInputStream in = new DataInputStream(socket.getInputStream());
-                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());) {
-
-                new Thread(new SocketReader(in)).start();
-
-                Sender sender = new Sender()
-                        .setNickName("user" + Math.round(Math.random() * 100))
-                        .setUuid(UUID.randomUUID().toString());
-
-                while (true) {
-                    String line = keyboard.nextLine();
-                    if ("quit".equals(line)) {
-                        writeAction(ActionType.EXIT, null, out);
-                        break;
-                    }
-
-                    Message message = new Message()
-                            .setSender(sender)
-                            .setContent(line);
-                    ActionType actionType = ActionType.SEND;
-                    writeAction(actionType, message, out);
-                }
-            }
-        } catch (Exception x) {
-            x.printStackTrace();
+      while( true )
+      {
+        String line = keyboard.nextLine();
+        if( "quit".equals( line ) )
+        {
+          Message message = new Message().setContent( null )
+                  .setActionType( ActionType.EXIT );
+          chat.writeMessage( message );
+          break;
         }
-    }
 
-    private void writeAction( ActionType actionType, Object command, DataOutputStream out ) throws IOException {
-        byte[] actionBytes = objectMapper.writeValueAsBytes(command);
-        int size = actionBytes.length;
-
-        out.writeByte(actionType.getCode());
-        out.writeInt(size);
-        out.write(actionBytes);
-        out.flush();
+        Message message = new Message()
+                .setContent( line )
+                .setActionType( ActionType.SEND );
+        chat.writeMessage( message );
+      }
     }
+    catch( Exception e )
+    {
+      throw new RuntimeException( e );
+    }
+  }
 }
