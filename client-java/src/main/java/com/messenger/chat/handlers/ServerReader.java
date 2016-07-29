@@ -4,6 +4,7 @@ import com.messenger.chat.Chat;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,33 +14,40 @@ import java.io.IOException;
  */
 public class ServerReader implements Runnable
 {
-  private final DataInputStream serverInputStream;
+  private final InputStream socketInputStream;
   private final Chat chat;
 
-  public ServerReader( final Chat chat, final DataInputStream serverInputStream )
+  public ServerReader( final Chat chat, final InputStream socketInputStream )
   {
     this.chat = chat;
-    this.serverInputStream = serverInputStream;
+    this.socketInputStream = socketInputStream;
   }
 
   @Override
   public void run()
   {
-    while( !Thread.currentThread().isInterrupted() )
+    try( DataInputStream serverInputStream = new DataInputStream( socketInputStream ) )
     {
-      try
+      while( !Thread.currentThread().isInterrupted() )
       {
-        String message = serverInputStream.readUTF();
-        chat.handleMessageFromServer( message );
+        try
+        {
+          String message = serverInputStream.readUTF();
+          chat.handleMessageFromServer( message );
+        }
+        catch( IOException e )
+        {
+          throw new RuntimeException( e );
+        }
       }
-      catch( IOException e )
-      {
-        throw new RuntimeException( e );
-      }
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
     }
   }
 
-  public void interrupt()
+  public void close()
   {
     Thread.currentThread().interrupt();
   }

@@ -1,11 +1,13 @@
 package com.messenger.chat.services;
 
 import com.messenger.chat.Chat;
-import com.messenger.chat.handlers.ChatMonitor;
-import com.messenger.chat.handlers.ClientReceiveHandler;
-import com.messenger.chat.handlers.ConsoleClientHandler;
+import com.messenger.chat.ChatHelper;
+import com.messenger.chat.handlers.*;
 import com.messenger.entities.Sender;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.UUID;
 
 /**
@@ -28,6 +30,15 @@ public class ChatService
 
   public static Chat startChat( Sender user, ClientReceiveHandler messageHandler )
   {
-    return ChatMonitor.handleChat( new Chat( SERVER_HOST, SERVER_PORT, user, messageHandler ) );
+    final InetAddress ipAddress = ChatHelper.getInetAddress( SERVER_HOST );
+    try
+    {
+      final Socket socket = new Socket( ipAddress, SERVER_PORT );
+      return new Chat( socket, user, messageHandler );
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
   }
 }

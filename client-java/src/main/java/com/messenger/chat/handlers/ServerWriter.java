@@ -16,37 +16,44 @@ import java.util.concurrent.BlockingQueue;
  */
 public class ServerWriter implements Runnable
 {
-  private final DataOutputStream serverOutputStream;
+  private final OutputStream socketOutputStream;
   private final Chat chat;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final BlockingQueue<Message> queue = new ArrayBlockingQueue<>(1024) ;
 
-  public ServerWriter( final Chat chat, final DataOutputStream serverOutputStream )
+  public ServerWriter( final Chat chat, final OutputStream socketOutputStream )
   {
     this.chat = chat;
-    this.serverOutputStream = serverOutputStream;
+    this.socketOutputStream = socketOutputStream;
   }
 
   @Override
   public void run()
   {
-    while( !Thread.currentThread().isInterrupted() )
+    try( DataOutputStream serverOutputStream = new DataOutputStream( socketOutputStream ) )
     {
-      try
+      while( !Thread.currentThread().isInterrupted() )
       {
-        Message message = queue.take();
-        byte[] actionBytes = objectMapper.writeValueAsBytes( message );
-        int size = actionBytes.length;
-        serverOutputStream.writeByte( message.getActionType().getCode() );
-        serverOutputStream.writeInt( size );
-        serverOutputStream.write( actionBytes );
-        serverOutputStream.flush();
+        try
+        {
+          Message message = queue.take();
+          byte[] actionBytes = objectMapper.writeValueAsBytes( message );
+          int size = actionBytes.length;
+          serverOutputStream.writeByte( message.getActionType().getCode() );
+          serverOutputStream.writeInt( size );
+          serverOutputStream.write( actionBytes );
+          serverOutputStream.flush();
+        }
+        catch( InterruptedException | IOException e )
+        {
+          throw new RuntimeException( e );
+        }
       }
-      catch( InterruptedException | IOException e )
-      {
-        throw new RuntimeException( e );
-      }
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
     }
   }
 
@@ -62,7 +69,7 @@ public class ServerWriter implements Runnable
     }
   }
 
-  public void interrupt()
+  public void close()
   {
     Thread.currentThread().interrupt();
   }

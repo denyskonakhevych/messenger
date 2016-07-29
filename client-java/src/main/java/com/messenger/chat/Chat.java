@@ -7,63 +7,33 @@ import com.messenger.chat.handlers.ServerWriter;
 import com.messenger.entities.Message;
 import com.messenger.entities.Sender;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 
-public class Chat implements Runnable
+public class Chat implements AutoCloseable
 {
-  private final String host;
-  private final Integer port;
   private final Sender user;
+  private final Socket socket;
 
   private ServerReader reader;
   private ServerWriter writer;
 
   private ClientReceiveHandler messageHandler;
 
-  public Chat( String host, Integer port, Sender user, ClientReceiveHandler messageHandler )
+  public Chat( final Socket socket, Sender user, ClientReceiveHandler messageHandler )
   {
-    this.host = host;
-    this.port = port;
-    this.user = user;
-    this.messageHandler = messageHandler;
-  }
-
-  @Override
-  public void run()
-  {
-    InetAddress ipAddress = ChatHelper.getInetAddress( host );
-    try (
-            Socket socket = new Socket( ipAddress, port );
-            DataInputStream in = new DataInputStream( socket.getInputStream() );
-            DataOutputStream out = new DataOutputStream( socket.getOutputStream() ) )
+    try
     {
-      reader = ChatMonitor.handleReader( new ServerReader( this, in ) );
-      writer = ChatMonitor.handleWriter( new ServerWriter( this, out ) );
-      while( !Thread.currentThread().isInterrupted() )
-      {
-        try
-        {
-          Thread.sleep( 1000L );
-        }
-        catch( InterruptedException e )
-        {
-          e.printStackTrace();
-        }
-      }
+      this.socket = socket;
+      reader = ChatMonitor.handleReader( new ServerReader( this, socket.getInputStream() ) );
+      writer = ChatMonitor.handleWriter( new ServerWriter( this, socket.getOutputStream() ) );
     }
     catch( IOException e )
     {
       throw new RuntimeException( e );
     }
-    finally
-    {
-      reader.interrupt();
-      writer.interrupt();
-    }
+    this.user = user;
+    this.messageHandler = messageHandler;
   }
 
   public void handleMessageFromServer( String message )
@@ -75,5 +45,23 @@ public class Chat implements Runnable
   {
     message.setSender( user );
     writer.write( message );
+  }
+
+  @Override
+  public void close()
+  {
+    try
+    {
+      socket.close();
+    }
+    catch( IOException e )
+    {
+      throw new RuntimeException( e );
+    }
+    finally
+    {
+      reader.close();
+      writer.close();
+    }
   }
 }

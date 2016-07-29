@@ -1,7 +1,5 @@
 package com.messenger.chat.handlers;
 
-import com.messenger.chat.Chat;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Denys Konakhevych
@@ -10,12 +8,6 @@ import com.messenger.chat.Chat;
  */
 public class ChatMonitor
 {
-  public static Chat handleChat( Chat chat )
-  {
-    new Thread( chat ).start();
-    return chat;
-  }
-
   public static ServerReader handleReader( ServerReader reader )
   {
     new Thread( reader ).start();

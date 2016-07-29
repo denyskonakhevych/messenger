@@ -20,11 +20,11 @@ public class Client
 
   private void run()
   {
-    try ( Scanner keyboard = new Scanner( System.in ) )
+    final Sender user = ChatService.createUser();
+    try ( Scanner keyboard = new Scanner( System.in );
+          final Chat chat = ChatService.startChat( user, new ConsoleClientHandler() )
+    )
     {
-      Sender user = ChatService.createUser();
-      Chat chat = ChatService.startChat( user, new ConsoleClientHandler() );
-
       while( true )
       {
         String line = keyboard.nextLine();
