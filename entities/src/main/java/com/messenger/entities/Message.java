@@ -8,6 +8,7 @@ public class Message {
     private String content;
     private Date sent;
     private Sender sender;
+    private ActionType actionType;
 
     public String getContent() {
         return content;
@@ -33,6 +34,17 @@ public class Message {
 
     public Message setSender(Sender sender) {
         this.sender = sender;
+        return this;
+    }
+
+    public ActionType getActionType()
+    {
+        return actionType;
+    }
+
+    public Message setActionType( ActionType actionType )
+    {
+        this.actionType = actionType;
         return this;
     }
 }
