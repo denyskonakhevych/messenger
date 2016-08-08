@@ -1,6 +1,6 @@
-package com.messenger.chat.handlers;
+package com.messenger.old.handlers;
 
-import com.messenger.chat.Chat;
+import com.messenger.old.ChatInstance;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -12,12 +12,12 @@ import java.io.InputStream;
  * Date: 28.07.2016
  * Time: 19:19
  */
-public class ServerReader implements Runnable
+public class ChatServerReader implements Runnable
 {
   private final InputStream socketInputStream;
-  private final Chat chat;
+  private final ChatInstance chat;
 
-  public ServerReader( final Chat chat, final InputStream socketInputStream )
+  public ChatServerReader( final ChatInstance chat, final InputStream socketInputStream )
   {
     this.chat = chat;
     this.socketInputStream = socketInputStream;

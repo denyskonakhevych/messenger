@@ -1,8 +1,8 @@
-package com.messenger.chat.handlers;
+package com.messenger.old.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.messenger.chat.Chat;
-import com.messenger.entities.Message;
+import com.messenger.old.ChatInstance;
+import com.messenger.entities.Action;
 
 import java.io.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -14,15 +14,15 @@ import java.util.concurrent.BlockingQueue;
  * Date: 28.07.2016
  * Time: 19:19
  */
-public class ServerWriter implements Runnable
+public class ChatServerWriter implements Runnable
 {
   private final OutputStream socketOutputStream;
-  private final Chat chat;
+  private final ChatInstance chat;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final BlockingQueue<Message> queue = new ArrayBlockingQueue<>(1024) ;
+  private final BlockingQueue<Action> queue = new ArrayBlockingQueue<>(1024) ;
 
-  public ServerWriter( final Chat chat, final OutputStream socketOutputStream )
+  public ChatServerWriter( final ChatInstance chat, final OutputStream socketOutputStream )
   {
     this.chat = chat;
     this.socketOutputStream = socketOutputStream;
@@ -37,7 +37,7 @@ public class ServerWriter implements Runnable
       {
         try
         {
-          Message message = queue.take();
+          Action message = queue.take();
           byte[] actionBytes = objectMapper.writeValueAsBytes( message );
           int size = actionBytes.length;
           serverOutputStream.writeByte( message.getActionType().getCode() );
@@ -57,7 +57,7 @@ public class ServerWriter implements Runnable
     }
   }
 
-  public void write( Message message )
+  public void write( Action message )
   {
     try
     {

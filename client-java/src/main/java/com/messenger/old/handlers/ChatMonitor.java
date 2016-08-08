@@ -1,4 +1,4 @@
-package com.messenger.chat.handlers;
+package com.messenger.old.handlers;
 
 /**
  * Created with IntelliJ IDEA.
@@ -8,13 +8,13 @@ package com.messenger.chat.handlers;
  */
 public class ChatMonitor
 {
-  public static ServerReader handleReader( ServerReader reader )
+  public static ChatServerReader handleReader( ChatServerReader reader )
   {
     new Thread( reader ).start();
     return reader;
   }
 
-  public static ServerWriter handleWriter( ServerWriter writer )
+  public static ChatServerWriter handleWriter( ChatServerWriter writer )
   {
     new Thread( writer ).start();
     return writer;

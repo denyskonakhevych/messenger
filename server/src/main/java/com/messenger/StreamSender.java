@@ -1,24 +1,25 @@
 package com.messenger;
 
-import com.messenger.entities.Sender;
+import com.messenger.entities.user.User;
 
 import java.io.DataOutputStream;
 import java.util.Objects;
 
-public class StreamSender extends Sender {
-    private Sender sender;
+public class StreamSender extends User
+{
+    private User sender;
     private DataOutputStream stream;
 
-    public StreamSender(Sender sender, DataOutputStream stream) {
+    public StreamSender(User sender, DataOutputStream stream) {
         this.sender = sender;
         this.stream = stream;
     }
 
-    public Sender getSender() {
+    public User getSender() {
         return sender;
     }
 
-    public StreamSender setSender(Sender sender) {
+    public StreamSender setSender(User sender) {
         this.sender = sender;
         return this;
     }

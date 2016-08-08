@@ -1,12 +1,10 @@
 package com.messenger;
 
-import com.messenger.entities.Message;
-import com.messenger.entities.Sender;
+import com.messenger.entities.Action;
+import com.messenger.entities.user.User;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,20 +17,20 @@ public class ChatManager {
         this.participants = new HashSet<>();
     }
 
-    public synchronized void sendMessage(Message message) {
-        Sender sender = message.getSender();
-        String nickName = sender.getNickName();
-        String utfMessage = nickName + " >" + message.getContent();
-        for (StreamSender participant : participants) {
-            executorService.submit( () -> {
-                try {
-                    participant.getStream().writeUTF(utfMessage);
-                    participant.getStream().flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+    public synchronized void sendMessage(Action message) {
+        User sender = message.getSender();
+        String nickName = sender.getDisplayName();
+        String utfMessage = nickName + " >" + message.getData();
+        participants.forEach( participant -> executorService.submit( () -> writeMessage( participant, utfMessage ) ) );
+    }
 
+    private void writeMessage( StreamSender participant, String utfMessage )
+    {
+        try {
+            participant.getStream().writeUTF(utfMessage);
+            participant.getStream().flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

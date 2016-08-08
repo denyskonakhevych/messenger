@@ -1,4 +1,4 @@
-package com.messenger.chat.handlers;
+package com.messenger.old.handlers;
 
 /**
  * Created with IntelliJ IDEA.
